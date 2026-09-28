@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>寶可夢英語大師挑戰賽 ⚡</title>
+    <style>
+        body {
+            font-family: 'Comic Sans MS', 'Arial', sans-serif;
+            background-color: #FFDE00; /* 比卡超黃色 */
+            color: #333;
+            text-align: center;
+            margin: 0;
+            padding: 20px;
+        }
+        #game-container {
+            background-color: white;
+            max-width: 650px;
+            margin: 20px auto;
+            border-radius: 25px;
+            padding: 30px;
+            box-shadow: 0 10px 0 #CC0000; /* 精靈球紅 */
+            border: 5px solid #3B4CCA; /* 寶可夢藍 */
+        }
+        h1 {
+            color: #CC0000;
+            font-size: 2em;
+            margin-top: 0;
+            text-shadow: 2px 2px #FFDE00;
+        }
+        .progress-bar {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #3B4CCA;
+            margin-bottom: 10px;
+        }
+        .score-board {
+            font-size: 1.3em;
+            font-weight: bold;
+            color: #28a745;
+            margin-bottom: 20px;
+        }
+        #question-box {
+            font-size: 1.3em;
+            margin-bottom: 25px;
+            line-height: 1.6;
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 15px;
+            border-left: 5px solid #FFDE00;
+            text-align: left;
+        }
+        .option-btn {
+            display: block;
+            width: 100%;
+            font-size: 1.15em;
+            padding: 12px 20px;
+            margin: 10px 0;
+            background-color: #ffffff;
+            color: #333;
+            border: 3px solid #3B4CCA;
+            border-radius: 12px;
+            cursor: pointer;
+            text-align: left;
+            transition: 0.2s;
+            box-shadow: 0 4px 0 #3B4CCA;
+        }
+        .option-btn:hover:not([disabled]) {
+            background-color: #fff6b3;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 0 #3B4CCA;
+        }
+        .option-btn:active:not([disabled]) {
+            transform: translateY(2px);
+            box-shadow: 0 2px 0 #3B4CCA;
+        }
+        #feedback {
+            font-size: 1.4em;
+            font-weight: bold;
+            margin: 20px 0;
+            min-height: 35px;
+        }
+        .correct-text { color: #28a745; text-shadow: 1px 1px #fff; }
+        .wrong-text { color: #dc3545; text-shadow: 1px 1px #fff; }
+        
+        #next-btn {
+            display: none;
+            background-color: #CC0000;
+            color: white;
+            font-size: 1.3em;
+            padding: 12px 35px;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            box-shadow: 0 5px 0 #990000;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+        #next-btn:hover {
+            background-color: #ff3333;
+        }
+        #restart-btn {
+            background-color: #28a745;
+            color: white;
+            font-size: 1.3em;
+            padding: 12px 35px;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            box-shadow: 0 5px 0 #1e7e34;
+            font-weight: bold;
+            display: none;
+            margin: 20px auto 0 auto;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="game-container">
+        <h1>⚡ 寶可夢大師：英語選擇題挑戰 ⚡</h1>
+        <div class="progress-bar">第 <span id="current-idx">1</span> / <span id="total-idx">20</span> 關</div>
+        <div class="score-board">💰 目前得分: <span id="score">0</span> 分</div>
+        
+        <div id="question-box">網頁載入中...</div>
+        
+        <div id="options-area"></div>
+
+        <div id="feedback"></div>
+        
+        <button id="next-btn" onclick="nextQuestion()">下一關！➡️</button>
+        <button id="restart-btn" onclick="restartGame()">重新挑戰 🔄</button>
+    </div>
+
+    <script>
+        const quizData = [
+            // === 第一單元：時間與日常作息 ===
+            {
+                q: "1. 小智每天早上 7:00 準時起床。英文應該說：\nAsh ______ up at seven o'clock in the morning.",
+                options: ["get", "gets", "getting"],
+                correct: "gets"
+            },
+            {
+                q: "2. 比卡超說：'It is half past eight.' 請問這是指幾點鐘？",
+                options: ["8:00", "8:30", "9:30"],
+                correct: "8:30"
+            },
+            {
+                q: "3. 卡比獸在晚上刷牙。英文要填什麼？\nSnorlax brushes his teeth ______ night.",
+                options: ["in", "on", "at"],
+                correct: "at"
+            },
+            {
+                q: "4. 小霞問：'______ you have a shower in the morning?'",
+                options: ["Do", "Does", "Are"],
+                correct: "Do"
+            },
+            {
+                q: "5. 填入正確的時間說法：下午四點十五分是 quarter ______ four in the afternoon.",
+                options: ["to", "past", "at"],
+                correct: "past"
+            },
+            // === 第二單元：星期與課外活動 ===
+            {
+                q: "6. 胖丁在星期一有合唱團練習：\nI have choir practice ______ Mondays.",
+                options: ["in", "at", "on"],
+                correct: "on"
+            },
+            {
+                q: "7. 小剛參加了幼童軍，英文是：\nHe goes to ______ Scouts on Thursdays.",
+                options: ["Cub", "Club", "Cup"],
+                correct: "Cub"
+            },
+            {
+                q: "8. 洛托姆圖鑑想問你星期五做什麼：\nWhat ______ you do on Fridays?",
+                options: ["doing", "does", "do"],
+                correct: "do"
+            },
+            {
+                q: "9. Zoe and Kelvin ______ drawing classes together on Saturdays.",
+                options: ["has", "have", "having"],
+                correct: "have"
+            },
+            {
+                q: "10. 小智星期三要跟導師學習：\nI study with my ______ on Wednesdays.",
+                options: ["tutor", "doctor", "actor"],
+                correct: "tutor"
+            },
+            // === 第三單元：週末活動（第三人稱） ===
+            {
+                q: "11. 火箭兵團的武藏週末會去健身房：\nJessie ______ to the gym at weekends.",
+                options: ["go", "going", "goes"],
+                correct: "goes"
+            },
+            {
+                q: "12. 小次郎在星期六會幫爸爸洗車：\nJames ______ his car on Saturdays.",
+                options: ["washes", "wash", "washing"],
+                correct: "washes"
+            },
+            {
+                q: "13. 喵喵怪問：'What ______ Colin's father do on Saturdays?'",
+                options: ["do", "does", "is"],
+                correct: "does"
+            },
+            {
+                q: "14. 填入正確的週末活動：\nMy brother ______ his friends on Sundays.",
+                options: ["meets", "meet", "meeting"],
+                correct: "meets"
+            },
+            // === 第四單元：節日慶典 ===
+            {
+                q: "15. 在哪一個節日，我們會吃月餅 (mooncakes) 和玩燈籠 (lanterns)？",
+                options: ["Easter", "Mid-Autumn Festival", "Dragon Boat Festival"],
+                correct: "Mid-Autumn Festival"
+            },
+            {
+                q: "16. 聖誕節時，小智喜歡收到禮物：\nAsh likes ______ presents at Christmas.",
+                options: ["get", "getting", "gets"],
+                correct: "getting"
+            },
+            {
+                q: "17. 比卡超喜歡在農曆新年看煙花：\nI like watching ______ at Chinese New Year.",
+                options: ["dragon boat races", "lanterns", "fireworks"],
+                correct: "fireworks"
+            },
+            {
+                q: "18. 我們在端午節會做什麼？\nWe watch dragon boat ______.",
+                options: ["races", "shows", "games"],
+                correct: "races"
+            },
+            // === 第五單元：Phonics 拼音 ===
+            {
+                q: "19. 【Phonics Challenge】比卡超跑得非常快：\nPikachu runs very f______ . (填入 ast 或 ath)",
+                options: ["ast (fast)", "ath (fath)"],
+                correct: "ast (fast)"
+            },
+            {
+                q: "20. 【Phonics Challenge】傑尼龜正在洗澡：\nSquirtle is having a b______ . (填入 ast 或 ath)",
+                options: ["ast (bast)", "ath (bath)"],
+                correct: "ath (bath)"
+            }
+        ];
+
+        let currentIdx = 0;
+        let score = 0;
+
+        const questionBox = document.getElementById("question-box");
+        const optionsArea = document.getElementById("options-area");
+        const feedback = document.getElementById("feedback");
+        const nextBtn = document.getElementById("next-btn");
+        const restartBtn = document.getElementById("restart-btn");
+        const scoreDisplay = document.getElementById("score");
+        const currentIdxDisplay = document.getElementById("current-idx");
+        const totalIdxDisplay = document.getElementById("total-idx");
+
+        totalIdxDisplay.innerText = quizData.length;
+
+        function loadQuestion() {
+            feedback.innerText = "";
+            feedback.className = "";
+            nextBtn.style.display = "none";
+            
+            if (currentIdx >= quizData.length) {
+                showFinalResult();
+                return;
+            }
+
+            currentIdxDisplay.innerText = currentIdx + 1;
+            const currentQ = quizData[currentIdx];
+            questionBox.innerText = currentQ.q;
+            optionsArea.innerHTML = "";
+
+            currentQ.options.forEach(opt => {
+                const btn = document.createElement("button");
+                btn.className = "option-btn";
+                btn.innerText = opt;
+                btn.onclick = () => selectOption(btn, opt, currentQ.correct);
+                optionsArea.appendChild(btn);
+            });
+        }
+
+        function selectOption(selectedBtn, selectedVal, correctVal) {
+            // 停用所有按鈕防止重複按
+            const allBtns = document.querySelectorAll(".option-btn");
+            allBtns.forEach(btn => {
+                btn.disabled = true;
+                if (btn.innerText === correctVal) {
+                    btn.style.backgroundColor = "#d4edda"; // 正確答案變綠色
+                    btn.style.borderColor = "#28a745";
+                }
+            });
+
+            // 判斷對錯
+            if (selectedVal === correctVal) {
+                feedback.innerText = "⚡ Pika! 答啱喇！好犀利呀！ ⚡";
+                feedback.className = "correct-text";
+                score += 5; // 每題5分
+                scoreDisplay.innerText = score;
+            } else {
+                selectedBtn.style.backgroundColor = "#f8d7da"; // 撳錯嘅變紅色
+                selectedBtn.style.borderColor = "#dc3545";
+                feedback.innerText = `💦 哎呀，行錯路啵！正確答案係：【${correctVal}】`;
+                feedback.className = "wrong-text";
+            }
+
+            nextBtn.style.display = "inline-block";
+        }
+
+        function nextQuestion() {
+            currentIdx++;
+            loadQuestion();
+        }
+
+        function showFinalResult() {
+            let evalText = "";
+            if (score === 100) {
+                evalText = "🏆 太完美了！你已經成為傳說中的寶可夢大師！";
+            } else if (score >= 70) {
+                evalText = "🌟 超級勁！你有潛力成為道館館長！";
+            } else {
+                evalText = "💪 唔錯嘅嘗試！同比卡超一齊再特訓多次啦！";
+            }
+
+            questionBox.innerHTML = `
+                <div style="text-align:center;">
+                    <h2>🎉 挑戰結束！ 🎉</h2>
+                    <p style="font-size:1.4em;">你的最終得分是：<b style="color:#CC0000; font-size:1.6em;">${score}</b> / 100 分</p>
+                    <p style="font-size:1.2em; font-weight:bold; color:#3B4CCA;">${evalText}</p>
+                </div>
+            `;
+            optionsArea.innerHTML = "";
+            nextBtn.style.display = "none";
+            restartBtn.style.display = "block";
+        }
+
+        function restartGame() {
+            currentIdx = 0;
+            score = 0;
+            scoreDisplay.innerText = score;
+            restartBtn.style.display = "none";
+            loadQuestion();
+        }
+
+        // 啟動遊戲
+        loadQuestion();
+    </script>
+
+</body>
+</html>
